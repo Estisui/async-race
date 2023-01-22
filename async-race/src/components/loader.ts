@@ -1,3 +1,7 @@
+import garageLoader from "./garage/garageLoader";
+import main from "./global/main";
+import winnersLoader from "./winners/winnersLoader";
+
 function loader() {
   const body = document.body;
 
@@ -6,22 +10,20 @@ function loader() {
 
   const header = document.createElement('header');
   header.classList.add('header');
+
   const garageBtn = document.createElement('button');
   garageBtn.classList.add('button', 'winner__button');
   garageBtn.innerText = 'Garage';
+  garageBtn.addEventListener('click', garageLoader);
+
   const winnerBtn = document.createElement('button');
   winnerBtn.classList.add('button', 'winner__button');
   winnerBtn.innerText = 'Winner';
+  winnerBtn.addEventListener('click', winnersLoader);
+
   header.append(garageBtn, winnerBtn);
 
-  const main = document.createElement('main');
-  const heading = document.createElement('h2');
-  heading.classList.add('main__heading');
-  heading.innerText = 'Garage';
-  const cars = document.createElement('h3');
-  cars.classList.add('main__carsInfo');
-  cars.innerText = 'Cars: 0';
-  main.append(heading, cars);
+  garageLoader();
 
   const footer = document.createElement('footer');
 
