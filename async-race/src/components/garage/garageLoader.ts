@@ -1,7 +1,7 @@
+import { carsAddBtn, carsAddColor, carsAddInput } from "./addInputs";
 import main from "../global/main";
-import viewCar from "./viewCar";
-import carInterface from "../global/carInterface";
 import getCars from "./getCars";
+import { carsChangeBtn, carsChangeColor, carsChangeInput } from "./changeInputs";
 
 function garageLoader() {
   const garagePage = document.createElement('div');
@@ -12,25 +12,11 @@ function garageLoader() {
   const carsAdd = document.createElement('div');
   carsAdd.classList.add('garage__add');
   carsInteraction.append(carsAdd);
-
-  const carsAddInput = document.createElement('input');
-  carsAddInput.type = 'text';
-  const carsAddColor = document.createElement('input');
-  carsAddColor.type = 'text';
-  const carsAddBtn = document.createElement('button');
-  carsAddBtn.innerText = 'Create';
   carsAdd.append(carsAddInput, carsAddColor, carsAddBtn);
 
   const carsChange = document.createElement('div');
   carsChange.classList.add('garage__change');
   carsInteraction.append(carsChange);
-
-  const carsChangeInput = document.createElement('input');
-  carsChangeInput.type = 'text';
-  const carsChangeColor = document.createElement('input');
-  carsChangeColor.type = 'text';
-  const carsChangeBtn = document.createElement('button');
-  carsChangeBtn.innerText = 'Change';
   carsChange.append(carsChangeInput, carsChangeColor, carsChangeBtn);
 
   const heading = document.createElement('h2');
