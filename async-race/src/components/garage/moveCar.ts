@@ -26,7 +26,7 @@ async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number,
   }, 20);
 
   function draw(timePassed: number) {
-    icon.style.left = timePassed * velocity / 500000 * 100 + '%';
+    icon.style.left = `calc(${timePassed} * ${velocity} / 500000 * (100% - 50px))`;
   }
 }
 
