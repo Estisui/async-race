@@ -2,6 +2,7 @@ import { carsAddBtn, carsAddColor, carsAddInput } from "./addInputs";
 import main from "../global/main";
 import getCars from "./getCars";
 import { carsChangeBtn, carsChangeColor, carsChangeInput } from "./changeInputs";
+import generateCars from "./generateCars";
 
 function garageLoader() {
   const garagePage = document.createElement('div');
@@ -22,6 +23,9 @@ function garageLoader() {
   const heading = document.createElement('h2');
   heading.classList.add('main__heading');
   heading.innerText = 'Garage';
+  const generate = document.createElement('button');
+  generate.innerText = 'Generate cars';
+  generate.addEventListener('click', generateCars);
   const pages = document.createElement('h3');
   pages.classList.add('main__pagesInfo');
   pages.innerText = 'Page #1';
@@ -34,7 +38,7 @@ function garageLoader() {
 
   getCars(cars);
 
-  garagePage.append(carsInteraction, heading, pages, carsInfo, cars);
+  garagePage.append(carsInteraction, heading, generate, pages, carsInfo, cars);
   main.replaceChildren(garagePage);
 }
 
