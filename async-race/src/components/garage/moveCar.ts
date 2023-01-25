@@ -2,18 +2,10 @@ async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number,
   const startTime = Date.now();
   
   let broken = false;
-
-  fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
-    id: String(carId),
-    status: 'drive'
-    }), {
-    method: 'PATCH'
-  }).then(response => {if (response.status == 500) {
-    broken = true;
-  }});
+  let timePassed: number | null = null;
 
   const timer = setInterval(function() {
-    const timePassed = Date.now() - startTime;
+    timePassed = Date.now() - startTime;
 
     if (timePassed * velocity / 500000 >= 1 || broken) {
       clearInterval(timer);
@@ -28,6 +20,17 @@ async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number,
   function draw(timePassed: number) {
     icon.style.left = `calc(${timePassed} * ${velocity} / 500000 * (100% - 50px))`;
   }
+
+  const response = fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
+    id: String(carId),
+    status: 'drive'
+    }), {
+    method: 'PATCH'
+  });
+  if ((await response).status == 500) {
+    broken = true;
+  }
+  response.then(() => {return timePassed});
 }
 
 export default moveCar;

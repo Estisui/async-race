@@ -4,6 +4,7 @@ import getCars from "./getCars";
 import { carsChangeBtn, carsChangeColor, carsChangeInput } from "./changeInputs";
 import generateCars from "./generateCars";
 import startRace from "./startRace";
+import stopRace from "./stopRace";
 
 async function garageLoader() {
   const garagePage = document.createElement('div');
@@ -34,7 +35,11 @@ async function garageLoader() {
   generate.addEventListener('click', generateCars);
   const startAll = document.createElement('button');
   startAll.innerText = 'Start race';
-  startAll.addEventListener('click', startRace(currentCars));
+  const stopAll = document.createElement('button');
+  stopAll.innerText = 'Stop race';
+  stopAll.addEventListener('click', stopRace(currentCars, startAll, stopAll));
+  startAll.addEventListener('click', startRace(currentCars, startAll, stopAll));
+  stopAll.disabled = true;
   const pages = document.createElement('h3');
   pages.classList.add('main__pagesInfo');
   pages.innerText = 'Page #1';
@@ -42,7 +47,7 @@ async function garageLoader() {
   carsInfo.classList.add('main__carsInfo');
   carsInfo.innerText = 'Cars: 0';
 
-  garagePage.append(carsInteraction, heading, generate, startAll, pages, carsInfo, cars);
+  garagePage.append(carsInteraction, heading, generate, startAll, stopAll, pages, carsInfo, cars);
   main.replaceChildren(garagePage);
 }
 
