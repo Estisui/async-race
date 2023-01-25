@@ -1,4 +1,6 @@
-async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number, stop: HTMLButtonElement, start: HTMLButtonElement) {
+import winner from "../winners/winner";
+
+async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number, stop: HTMLButtonElement, start: HTMLButtonElement, name: string) {
   const startTime = Date.now();
   
   let broken = false;
@@ -10,6 +12,9 @@ async function moveCar(carId: number, icon: HTMLObjectElement, velocity: number,
     if (timePassed * velocity / 500000 >= 1 || broken) {
       clearInterval(timer);
       stop.disabled = false;
+      if (timePassed * velocity / 500000 >= 1 && !winner.isKnown) {
+        winner.updateWinner(carId, timePassed, name);
+      }
       return;
     }
 

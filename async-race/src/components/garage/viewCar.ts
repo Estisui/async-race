@@ -41,7 +41,7 @@ function viewCar(carInfo: carInterface) {
       iconFill.innerHTML = `.st0{fill:${carInfo.color};}`;
     }
   })
-  start.addEventListener('click', startCar(carInfo.id, icon, stop, start));
+  start.addEventListener('click', startCar(carInfo.id, icon, stop, start, carInfo.name));
   stop.addEventListener('click', stopCar(carInfo.id, icon, stop, start));
 
   car.append(select, remove, start, stop, name, icon);
