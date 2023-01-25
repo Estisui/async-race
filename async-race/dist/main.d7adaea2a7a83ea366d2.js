@@ -21,7 +21,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_sourceMaps_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ".car {\n  position: relative;\n}\n\n.car__icon {\n  height: 50px;\n  position: relative;\n}", "",{"version":3,"sources":["webpack://./src/styles/garage.scss","webpack://./src/index.scss"],"names":[],"mappings":"AAAA;EACE,kBAAA;ACCF;;ADEA;EACE,YAAA;EACA,kBAAA;ACCF","sourcesContent":[".car {\n  position: relative;\n}\n\n.car__icon {\n  height: 50px;\n  position: relative;\n}",".car {\n  position: relative;\n}\n\n.car__icon {\n  height: 50px;\n  position: relative;\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ".car {\n  position: relative;\n}\n\n.car__icon {\n  height: 50px;\n  position: relative;\n}", "",{"version":3,"sources":["webpack://./src/styles/garage.scss","webpack://./src/index.scss"],"names":[],"mappings":"AAAA;EACE,kBAAA;ACCF;;ADEA;EACE,YAAA;EACA,kBAAA;ACCF","sourcesContent":[".car {\r\n  position: relative;\r\n}\r\n\r\n.car__icon {\r\n  height: 50px;\r\n  position: relative;\r\n}",".car {\n  position: relative;\n}\n\n.car__icon {\n  height: 50px;\n  position: relative;\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -637,6 +637,7 @@ const getCars_1 = __webpack_require__(/*! ./getCars */ "./src/components/garage/
 const changeInputs_1 = __webpack_require__(/*! ./changeInputs */ "./src/components/garage/changeInputs.ts");
 const generateCars_1 = __webpack_require__(/*! ./generateCars */ "./src/components/garage/generateCars.ts");
 const startRace_1 = __webpack_require__(/*! ./startRace */ "./src/components/garage/startRace.ts");
+const stopRace_1 = __webpack_require__(/*! ./stopRace */ "./src/components/garage/stopRace.ts");
 async function garageLoader() {
     const garagePage = document.createElement('div');
     const carsInteraction = document.createElement('div');
@@ -660,14 +661,21 @@ async function garageLoader() {
     generate.addEventListener('click', generateCars_1.default);
     const startAll = document.createElement('button');
     startAll.innerText = 'Start race';
-    startAll.addEventListener('click', (0, startRace_1.default)(currentCars));
+    const stopAll = document.createElement('button');
+    stopAll.innerText = 'Stop race';
+    stopAll.addEventListener('click', (0, stopRace_1.default)(currentCars, startAll, stopAll));
+    startAll.addEventListener('click', (0, startRace_1.default)(currentCars, startAll, stopAll));
+    stopAll.disabled = true;
+    const wonBy = document.createElement('p');
+    wonBy.classList.add('main__wonBy');
+    wonBy.innerText = '';
     const pages = document.createElement('h3');
     pages.classList.add('main__pagesInfo');
     pages.innerText = 'Page #1';
     const carsInfo = document.createElement('h3');
     carsInfo.classList.add('main__carsInfo');
     carsInfo.innerText = 'Cars: 0';
-    garagePage.append(carsInteraction, heading, generate, startAll, pages, carsInfo, cars);
+    garagePage.append(carsInteraction, heading, generate, startAll, stopAll, wonBy, pages, carsInfo, cars);
     main_1.default.replaceChildren(garagePage);
 }
 exports["default"] = garageLoader;
@@ -763,28 +771,23 @@ exports.makeChangable = makeChangable;
 /*!******************************************!*\
   !*** ./src/components/garage/moveCar.ts ***!
   \******************************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-async function moveCar(carId, icon, velocity, stop, start) {
+const winner_1 = __webpack_require__(/*! ../winners/winner */ "./src/components/winners/winner.ts");
+async function moveCar(carId, icon, velocity, stop, start, name) {
     const startTime = Date.now();
     let broken = false;
-    fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
-        id: String(carId),
-        status: 'drive'
-    }), {
-        method: 'PATCH'
-    }).then(response => {
-        if (response.status == 500) {
-            broken = true;
-        }
-    });
+    let timePassed = null;
     const timer = setInterval(function () {
-        const timePassed = Date.now() - startTime;
+        timePassed = Date.now() - startTime;
         if (timePassed * velocity / 500000 >= 1 || broken) {
             clearInterval(timer);
             stop.disabled = false;
+            if (timePassed * velocity / 500000 >= 1 && !winner_1.default.isKnown) {
+                winner_1.default.updateWinner(carId, timePassed, name);
+            }
             return;
         }
         draw(timePassed);
@@ -792,6 +795,16 @@ async function moveCar(carId, icon, velocity, stop, start) {
     function draw(timePassed) {
         icon.style.left = `calc(${timePassed} * ${velocity} / 500000 * (100% - 50px))`;
     }
+    const response = fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
+        id: String(carId),
+        status: 'drive'
+    }), {
+        method: 'PATCH'
+    });
+    if ((await response).status == 500) {
+        broken = true;
+    }
+    response.then(() => { return timePassed; });
 }
 exports["default"] = moveCar;
 
@@ -830,17 +843,17 @@ exports["default"] = removeCar;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const moveCar_1 = __webpack_require__(/*! ./moveCar */ "./src/components/garage/moveCar.ts");
-function startCar(carId, icon, stop, start) {
+function startCar(carId, icon, stop, start, name) {
     return async function curriedStartCar() {
         start.disabled = true;
-        fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
+        const response = fetch('http://127.0.0.1:3000/engine?' + new URLSearchParams({
             id: String(carId),
             status: 'started'
         }), {
             method: 'PATCH'
-        })
-            .then(response => response.json())
-            .then(data => { (0, moveCar_1.default)(carId, icon, data.velocity, stop, start); });
+        });
+        const data = (await response).json();
+        await (0, moveCar_1.default)(carId, icon, (await data).velocity, stop, start, name);
     };
 }
 exports["default"] = startCar;
@@ -856,20 +869,23 @@ exports["default"] = startCar;
 
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const winner_1 = __webpack_require__(/*! ../winners/winner */ "./src/components/winners/winner.ts");
 const startCar_1 = __webpack_require__(/*! ./startCar */ "./src/components/garage/startCar.ts");
-function startRace(cars) {
+function startRace(cars, startAll, stopAll) {
     return async function curriedStartRace() {
-        cars.forEach((car) => {
-            var _a, _b, _c;
-            const icon = (_a = car.element) === null || _a === void 0 ? void 0 : _a.querySelector('.car__icon');
-            const stop = (_b = car.element) === null || _b === void 0 ? void 0 : _b.querySelector('.car__stop');
-            const start = (_c = car.element) === null || _c === void 0 ? void 0 : _c.querySelector('.car__start');
-            console.log('false');
+        startAll.disabled = true;
+        winner_1.default.isKnown = false;
+        const promises = [];
+        cars.forEach(async (car) => {
+            const icon = car.element?.querySelector('.car__icon');
+            const stop = car.element?.querySelector('.car__stop');
+            const start = car.element?.querySelector('.car__start');
             if (icon && stop && start) {
-                console.log(true);
-                (0, startCar_1.default)(car.id, icon, stop, start)();
+                const promise = (((0, startCar_1.default)(car.id, icon, stop, start, car.name)))();
+                promises.push(promise);
             }
         });
+        Promise.all(promises).then(() => { stopAll.disabled = false; });
     };
 }
 exports["default"] = startRace;
@@ -903,6 +919,34 @@ function stopCar(carId, icon, stop, start) {
     };
 }
 exports["default"] = stopCar;
+
+
+/***/ }),
+
+/***/ "./src/components/garage/stopRace.ts":
+/*!*******************************************!*\
+  !*** ./src/components/garage/stopRace.ts ***!
+  \*******************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const stopCar_1 = __webpack_require__(/*! ./stopCar */ "./src/components/garage/stopCar.ts");
+function startRace(cars, startAll, stopAll) {
+    return async function curriedStopRace() {
+        stopAll.disabled = true;
+        cars.forEach((car) => {
+            const icon = car.element?.querySelector('.car__icon');
+            const stop = car.element?.querySelector('.car__stop');
+            const start = car.element?.querySelector('.car__start');
+            if (icon && stop && start) {
+                (0, stopCar_1.default)(car.id, icon, stop, start)();
+            }
+        });
+        startAll.disabled = false;
+    };
+}
+exports["default"] = startRace;
 
 
 /***/ }),
@@ -945,13 +989,12 @@ function viewCar(carInfo) {
     icon.type = "image/svg+xml";
     icon.data = 'car.svg';
     icon.addEventListener('load', () => {
-        var _a;
-        const iconFill = (_a = icon.contentDocument) === null || _a === void 0 ? void 0 : _a.getElementById('SVG_fill');
+        const iconFill = icon.contentDocument?.getElementById('SVG_fill');
         if (iconFill) {
             iconFill.innerHTML = `.st0{fill:${carInfo.color};}`;
         }
     });
-    start.addEventListener('click', (0, startCar_1.default)(carInfo.id, icon, stop, start));
+    start.addEventListener('click', (0, startCar_1.default)(carInfo.id, icon, stop, start, carInfo.name));
     stop.addEventListener('click', (0, stopCar_1.default)(carInfo.id, icon, stop, start));
     car.append(select, remove, start, stop, name, icon);
     return car;
@@ -1006,6 +1049,38 @@ function loader() {
     body.append(header, main_1.default, footer);
 }
 exports["default"] = loader;
+
+
+/***/ }),
+
+/***/ "./src/components/winners/winner.ts":
+/*!******************************************!*\
+  !*** ./src/components/winners/winner.ts ***!
+  \******************************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const winner = {
+    info: undefined,
+    isKnown: true,
+    getWinner: () => {
+        return winner.isKnown;
+    },
+    updateWinner: (id, time, name) => {
+        winner.isKnown = true;
+        winner.info = {
+            id: id,
+            time: time,
+            name: name
+        };
+        const output = document.querySelector('.main__wonBy');
+        if (output) {
+            output.innerText = `Last race won by ${winner.info.name} within ${winner.info.time / 1000} seconds`;
+        }
+    }
+};
+exports["default"] = winner;
 
 
 /***/ }),
@@ -1171,4 +1246,4 @@ __webpack_require__(/*! ./index.scss */ "./src/index.scss");
 
 /******/ })()
 ;
-//# sourceMappingURL=main.12d4e9d90b8a7a110e9e.js.map
+//# sourceMappingURL=main.d7adaea2a7a83ea366d2.js.map
